@@ -15,7 +15,7 @@ type
   private
     FTab: TSQLite3VTab;
   public
-    constructor Create(vTab : TSQLite3VTab);
+    constructor Create(vTab : TSQLite3VTab);virtual;
     function Search(Prepared : TSQLVirtualTablePrepared) : Boolean;virtual;abstract;
     function Column(Index : Integer;var Res : TSQLVar) : Boolean;virtual;abstract;
     function Next : Boolean;virtual;abstract;
@@ -28,6 +28,7 @@ type
 
   TSQLiteVirtualTable = class(TObject)
   private
+    fModule : TSQLite3Module;
   protected
     function GetName : string;virtual;abstract;
   public
@@ -53,12 +54,14 @@ function vt_Create(DB: TSQLite3DB; pAux: Pointer; argc: Integer;
   const argv: PPUTF8CharArray; var ppVTab: PSQLite3VTab; var pzErr: PUTF8Char
   ): Integer; {$ifndef SQLITE3_FASTCALL}cdecl;{$endif}
 var Table: TSQLiteVirtualTable absolute pAux;
+  aStruct: String;
 begin
   Result := SQLITE_ERROR;
   ppVTab := sqlite3_malloc(sizeof(TSQLite3VTab));
   if ppVTab=nil then exit;
   Fillchar(ppVTab^,sizeof(ppVTab^),0);
-  result := declare_vtab(DB,PChar(Table.GenerateStructure));
+  aStruct := Table.GenerateStructure;
+  result := declare_vtab(DB,PChar(aStruct));
   ppVTab^.pInstance := Table;
 end;
 
@@ -248,8 +251,6 @@ end;
 { TSQLiteVirtualTable }
 
 function TSQLiteVirtualTable.RegisterToSQLite(db: Pointer): Boolean;
-var
-  fModule : TSQLite3Module;
 begin
   FillChar(fModule,sizeof(fModule),0);
   fModule.iVersion := 1;
@@ -284,7 +285,7 @@ begin
   end;
   }
   Result := LoadSQLiteFuncs;
-  Result := Result and (create_module_v2(TSQLite3DB(db),PChar(GetName),fModule,@Self,@vt_ModuleDestroy) = sqlite_ok);
+  Result := Result and (create_module_v2(TSQLite3DB(db),PChar(GetName),fModule,Self,@vt_ModuleDestroy) = sqlite_ok);
 end;
 
 end.
