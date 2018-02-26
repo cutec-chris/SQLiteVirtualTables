@@ -26,7 +26,7 @@ type
 
   { TSQLiteVirtualTable }
 
-  TSQLiteVirtualTable = class(TObject)
+  TSQLiteVirtualTable = class(TComponent)
   private
     fModule : TSQLite3Module;
   protected
