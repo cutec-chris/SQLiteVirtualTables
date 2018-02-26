@@ -32,7 +32,7 @@ type
   protected
     function GetName : string;virtual;abstract;
   public
-    function Prepare(Prepared : TSQLVirtualTablePrepared) : Boolean;virtual;abstract;
+    function Prepare(var Prepared : TSQLVirtualTablePrepared) : Boolean;virtual;abstract;
     function GenerateStructure : string;virtual;abstract;
     function CursorClass : TSQLiteVirtualTableCursorClass;virtual;abstract;
     function RegisterToSQLite(db : Pointer) : Boolean;
@@ -87,17 +87,19 @@ begin
     Prepared^.EstimatedCost := costFullScan;
     for i := 0 to pInfo.nConstraint-1 do
       with Prepared^.Where[i], pInfo.aConstraint^[i] do begin
-        OmitCheck := False;
-        Value.VType := ftUnknown;
-        if usable then begin
-          Column := iColumn;
+        Prepared^.Where[i].OmitCheck := False;
+        Prepared^.Where[i].Value.VType := ftUnknown;
+        if pInfo.aConstraint^[i].usable then begin
+          Prepared^.Where[i].Column := pInfo.aConstraint^[i].iColumn;
           case op of
-            SQLITE_INDEX_CONSTRAINT_EQ:    Operation := soEqualTo;
-            SQLITE_INDEX_CONSTRAINT_GT:    Operation := soGreaterThan;
-            SQLITE_INDEX_CONSTRAINT_LE:    Operation := soLessThanOrEqualTo;
-            SQLITE_INDEX_CONSTRAINT_LT:    Operation := soLessThan;
-            SQLITE_INDEX_CONSTRAINT_GE:    Operation := soGreaterThanOrEqualTo;
-            SQLITE_INDEX_CONSTRAINT_MATCH: Operation := soBeginWith;
+            SQLITE_INDEX_CONSTRAINT_EQ:    Prepared^.Where[i].Operation := soEqualTo;
+            SQLITE_INDEX_CONSTRAINT_GT:    Prepared^.Where[i].Operation := soGreaterThan;
+            SQLITE_INDEX_CONSTRAINT_LE:    Prepared^.Where[i].Operation := soLessThanOrEqualTo;
+            SQLITE_INDEX_CONSTRAINT_LT:    Prepared^.Where[i].Operation := soLessThan;
+            SQLITE_INDEX_CONSTRAINT_GE:    Prepared^.Where[i].Operation := soGreaterThanOrEqualTo;
+            SQLITE_INDEX_CONSTRAINT_MATCH: Prepared^.Where[i].Operation := soBeginWith;
+            SQLITE_INDEX_CONSTRAINT_LIKE:  Prepared^.Where[i].Operation := soLike;
+            SQLITE_INDEX_CONSTRAINT_GLOB:  Prepared^.Where[i].Operation := soGlob;
             else Column := VIRTUAL_TABLE_IGNORE_COLUMN; // unhandled operator
           end;
         end else

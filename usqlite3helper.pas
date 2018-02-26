@@ -25,6 +25,17 @@ const
   // database (e.g. as expected by TSQLAccessRights or such)
   MAX_SQLTABLES = 256;
 
+  SQLITE_INDEX_CONSTRAINT_LIKE     = 65;//  /* 3.10.0 and later */
+  SQLITE_INDEX_CONSTRAINT_GLOB     = 66;//  /* 3.10.0 and later */
+  SQLITE_INDEX_CONSTRAINT_REGEXP   = 67;//  /* 3.10.0 and later */
+  SQLITE_INDEX_CONSTRAINT_NE       = 68;//  /* 3.21.0 and later */
+  SQLITE_INDEX_CONSTRAINT_ISNOT    = 69;//  /* 3.21.0 and later */
+  SQLITE_INDEX_CONSTRAINT_ISNOTNULL= 70;//  /* 3.21.0 and later */
+  SQLITE_INDEX_CONSTRAINT_ISNULL   = 71;//  /* 3.21.0 and later */
+  SQLITE_INDEX_CONSTRAINT_IS       = 72;//  /* 3.21.0 and later */
+  SQLITE_INDEX_SCAN_UNIQUE         =  1;//  /* Scan visits at most 1 row */
+
+
 
 type
   TSQLite3DB = type PtrUInt;
@@ -113,7 +124,9 @@ type
      soContains,
      soSoundsLikeEnglish,
      soSoundsLikeFrench,
-     soSoundsLikeSpanish);
+     soSoundsLikeSpanish,
+     soLike,
+     soGlob);
   /// a WHERE constraint as set by the TSQLVirtualTable.Prepare() method
   TSQLVirtualTablePreparedConstraint = packed record
     /// Column on left-hand side of constraint
@@ -242,7 +255,7 @@ type
   // application-defined SQL functions, i.e. a TSQLFunctionFunc prototype
   TSQLite3FunctionContext = type Pointer;
 
-  TSQLite3Value = type PtrUInt;
+  TSQLite3Value = type Pointer;
   /// internaly store any array of  SQLite3 value
   TSQLite3ValueArray = array[0..63] of TSQLite3Value;
 
@@ -1040,26 +1053,26 @@ procedure SQlite3ValueToSQLVar(Value: TSQLite3Value; var Res: TSQLVar);
 var ValueType: Integer;
 begin
   Res.Options := [];
-  ValueType := sqlite3_value_type(@Value);
+  ValueType := sqlite3_value_type(Value);
   case ValueType of
   SQLITE_NULL:
     Res.VType := ftNull;
   SQLITE_INTEGER: begin
     Res.VType := ftInt64;
-    Res.VInt64 := sqlite3_value_int64(@Value);
+    Res.VInt64 := sqlite3_value_int64(Value);
   end;
   SQLITE_FLOAT: begin
     Res.VType := ftDouble;
-    Res.VDouble := sqlite3_value_double(@Value);
+    Res.VDouble := sqlite3_value_double(Value);
   end;
   SQLITE_TEXT:  begin
     Res.VType := ftUTF8;
-    Res.VText := sqlite3_value_text(@Value);
+    Res.VText := sqlite3_value_text(Value);
   end;
   SQLITE_BLOB: begin
     Res.VType := ftBlob;
-    Res.VBlobLen := sqlite3_value_bytes(@Value);
-    Res.VBlob := sqlite3_value_blob(@Value);
+    Res.VBlobLen := sqlite3_value_bytes(Value);
+    Res.VBlob := sqlite3_value_blob(Value);
   end;
   else begin
     {$ifdef WITHLOG}
