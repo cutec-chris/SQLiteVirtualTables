@@ -171,7 +171,7 @@ type
 
   /// abstract planning execution of a query, as set by TSQLVirtualTable.Prepare
   TSQLVirtualTablePreparedCost = (
-    costFullScan, costScanWhere, costSecondaryIndex, costPrimaryIndex);
+    costContentScan, costFullScan, costScanWhere, costSecondaryIndex, costPrimaryIndex);
 
   /// the WHERE and ORDER BY statements as set by TSQLVirtualTable.Prepare
   // - Where[] and OrderBy[] are fixed sized arrays, for fast and easy code

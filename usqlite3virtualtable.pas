@@ -71,7 +71,7 @@ var Prepared: PSQLVirtualTablePrepared;
   i: Integer;
   n: Integer;
   Table: TSQLiteVirtualTable;
-const COST: array[TSQLVirtualTablePreparedCost] of double = (1E10,1E8,10,1);
+const COST: array[TSQLVirtualTablePreparedCost] of double = (1E16,1E10,1E8,10,1);
 begin
   Result := SQLITE_ERROR;
   Table := TSQLiteVirtualTable(pvTab.pInstance);
