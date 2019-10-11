@@ -28,10 +28,14 @@ type
 
   TSQLiteVirtualTable = class(TComponent)
   private
+    FArguments: TStringList;
     fModule : TSQLite3Module;
   protected
     function GetName : string;virtual;abstract;
+    property Arguments : TStringList read FArguments;
   public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     function Prepare(var Prepared : TSQLVirtualTablePrepared) : Boolean;virtual;abstract;
     function GenerateStructure : string;virtual;abstract;
     function CursorClass : TSQLiteVirtualTableCursorClass;virtual;abstract;
@@ -55,7 +59,10 @@ function vt_Create(DB: TSQLite3DB; pAux: Pointer; argc: Integer;
   ): Integer; {$ifndef SQLITE3_FASTCALL}cdecl;{$endif}
 var Table: TSQLiteVirtualTable absolute pAux;
   aStruct: String;
+  i: Integer;
 begin
+  for i := 0 to argc-1 do
+    Table.Arguments.Add(argv[i]);
   Result := SQLITE_ERROR;
   ppVTab := sqlite3_malloc(sizeof(TSQLite3VTab));
   if ppVTab=nil then exit;
@@ -251,6 +258,18 @@ begin
 end;
 
 { TSQLiteVirtualTable }
+
+constructor TSQLiteVirtualTable.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FArguments := TStringList.Create;
+end;
+
+destructor TSQLiteVirtualTable.Destroy;
+begin
+  FArguments.Free;
+  inherited Destroy;
+end;
 
 function TSQLiteVirtualTable.RegisterToSQLite(db: Pointer): Boolean;
 begin
